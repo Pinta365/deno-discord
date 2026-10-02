@@ -72,14 +72,18 @@ Deno.test({
     ignore: !token || !channelId,
     async fn() {
         const sent = await api.channels.createMessage(channelId!, {
-            content: "disc-dev live smoke test (will be deleted)",
+            content: "@pinta365/discord live smoke test (will be deleted)",
             files: [{ name: "smoke.txt", data: `ran at ${new Date().toISOString()}` }],
         });
         try {
             assertEquals(sent.attachments.length, 1);
             assertEquals(sent.attachments[0].filename, "smoke.txt");
-            const edited = await api.channels.editMessage(channelId!, sent.id, "disc-dev live smoke test (edited)");
-            assertEquals(edited.content, "disc-dev live smoke test (edited)");
+            const edited = await api.channels.editMessage(
+                channelId!,
+                sent.id,
+                "@pinta365/discord live smoke test (edited)",
+            );
+            assertEquals(edited.content, "@pinta365/discord live smoke test (edited)");
             await api.channels.addReaction(channelId!, sent.id, "✅");
             const users = await api.channels.getReactions(channelId!, sent.id, "✅");
             assertEquals(users.length, 1);

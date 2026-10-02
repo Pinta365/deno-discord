@@ -99,7 +99,7 @@ export class RestClient {
         this.#baseUrl = `${options.baseUrl ?? "https://discord.com/api"}/v${this.apiVersion}`;
         this.#retries = options.retries ?? 3;
         this.#timeout = options.timeout ?? 15_000;
-        this.#userAgent = `DiscordBot (https://github.com/Pinta365/disc-dev, ${VERSION})${
+        this.#userAgent = `DiscordBot (https://github.com/Pinta365/deno-discord, ${VERSION})${
             options.userAgentSuffix ? " " + options.userAgentSuffix : ""
         }`;
         this.#logger = options.logger ?? new Logger({}, "rest");

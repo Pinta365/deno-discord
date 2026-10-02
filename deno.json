@@ -1,5 +1,5 @@
 {
-    "name": "@pinta365/discordbot",
+    "name": "@pinta365/discord",
     "version": "0.1.0",
     "exports": {
         ".": "./mod.ts",

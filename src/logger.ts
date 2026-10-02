@@ -53,7 +53,7 @@ export class Logger {
      * @param options Level and handler.
      * @param scope Label included with each record, e.g. `"gateway"`.
      */
-    constructor(options: LoggerOptions = {}, scope = "discordbot") {
+    constructor(options: LoggerOptions = {}, scope = "discord") {
         this.level = options.level ?? LogLevel.WARN;
         this.handler = options.handler ?? consoleLogHandler;
         this.#scope = scope;

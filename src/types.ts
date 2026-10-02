@@ -4,7 +4,7 @@
  *
  * @example
  * ```ts
- * import type { APIMessage } from "@pinta365/discordbot/types";
+ * import type { APIMessage } from "@pinta365/discord/types";
  * ```
  * @module
  */

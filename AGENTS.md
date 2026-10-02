@@ -4,7 +4,7 @@ Guidance for AI coding agents (and humans) working in this repo.
 
 ## Project
 
-`@pinta365/discordbot` is a small Discord library for Deno, published to JSR. It covers:
+`@pinta365/discord` is a small Discord library for Deno, published to JSR. It covers:
 
 - **Gateway bots**: `Client` (src/client.ts) manages one or more `Shard`s (src/gateway/shard.ts).
 - **HTTP interactions**: `createInteractionHandler` (src/interactions/http.ts), a Fetch API `Request -> Response`
@@ -19,7 +19,7 @@ Guidance for AI coding agents (and humans) working in this repo.
 ## Rules
 
 - **Types come from `discord-api-types/v10`.** Don't hand-write Discord payload types; import them (re-exported via
-  `src/types.ts` as `@pinta365/discordbot/types`). Use `Routes` for endpoint paths.
+  `src/types.ts` as `@pinta365/discord/types`). Use `Routes` for endpoint paths.
 - Deno only for now; Deno APIs are fine. No Node-only dependencies except `node:` built-ins.
 - Every exported symbol needs JSDoc and explicit types (JSR "slow types" rules). Check with `deno publish --dry-run`.
 - Keep the public API small. Export new things from `mod.ts` deliberately.

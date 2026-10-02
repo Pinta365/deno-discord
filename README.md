@@ -1,4 +1,4 @@
-# @pinta365/discordbot
+# @pinta365/discord
 
 A small, modern Discord library for Deno. It covers:
 
@@ -10,17 +10,19 @@ A small, modern Discord library for Deno. It covers:
   keeps up with Discord.
 
 > Status: 0.x. APIs may still change between minor versions.
+>
+> This is a community library and isn't affiliated with or endorsed by Discord.
 
 ## Install
 
 ```sh
-deno add jsr:@pinta365/discordbot
+deno add jsr:@pinta365/discord
 ```
 
 ## Gateway bot
 
 ```ts
-import { Client, GatewayIntentBits } from "@pinta365/discordbot";
+import { Client, GatewayIntentBits } from "@pinta365/discord";
 
 const client = new Client({
     token: Deno.env.get("DISCORD_TOKEN")!,
@@ -45,7 +47,7 @@ unsubscribe function, and `once()` and `waitFor()` are available too.
 ## HTTP interactions (no gateway)
 
 ```ts
-import { createInteractionHandler } from "@pinta365/discordbot";
+import { createInteractionHandler } from "@pinta365/discord";
 
 Deno.serve(createInteractionHandler({
     publicKey: Deno.env.get("DISCORD_PUBLIC_KEY")!,
@@ -111,8 +113,8 @@ Groups: `channels` (messages, reactions, pins, threads, invites), `guilds` (memb
 ## REST
 
 ```ts
-import { RestClient, Routes } from "@pinta365/discordbot";
-import type { APIMessage } from "@pinta365/discordbot/types";
+import { RestClient, Routes } from "@pinta365/discord";
+import type { APIMessage } from "@pinta365/discord/types";
 
 const rest = new RestClient({ token: Deno.env.get("DISCORD_TOKEN")! });
 
@@ -134,7 +136,7 @@ ones.
 ## Logging
 
 ```ts
-import { LogLevel } from "@pinta365/discordbot";
+import { LogLevel } from "@pinta365/discord";
 new Client({ token, intents, logger: { level: LogLevel.DEBUG, handler: (level, scope, args) => {/* ... */} } });
 ```
 

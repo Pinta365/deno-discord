@@ -1,11 +1,11 @@
 /**
  * A minimal, modern Discord library for Deno: gateway bots, HTTP interactions and a rate-limited REST client.
  *
- * Discord API types come from `discord-api-types` and are re-exported from `@pinta365/discordbot/types`.
+ * Discord API types come from `discord-api-types` and are re-exported from `@pinta365/discord/types`.
  *
  * @example
  * ```ts
- * import { Client, GatewayIntentBits } from "@pinta365/discordbot";
+ * import { Client, GatewayIntentBits } from "@pinta365/discord";
  *
  * const client = new Client({ token: Deno.env.get("TOKEN")!, intents: [GatewayIntentBits.Guilds] });
  * client.on("INTERACTION_CREATE", async (interaction) => {

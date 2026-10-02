@@ -395,8 +395,8 @@ export class Shard {
             intents: this.#opts.intents,
             properties: {
                 os: Deno.build.os,
-                browser: `@pinta365/discordbot ${VERSION}`,
-                device: "@pinta365/discordbot",
+                browser: `@pinta365/discord ${VERSION}`,
+                device: "@pinta365/discord",
             },
             shard: this.#opts.shard ?? [0, 1],
         };

@@ -1,5 +1,6 @@
 import { assert, assertEquals, assertInstanceOf, assertRejects, assertStringIncludes } from "@std/assert";
 import { DiscordAPIError, Logger, LogLevel, RestClient } from "../mod.ts";
+import { redactPath } from "../src/rest/rest.ts";
 
 type FetchInput = string | URL | Request;
 
@@ -218,4 +219,30 @@ Deno.test("an exhausted bucket waits for Reset-After before the next request", a
     const elapsed = Date.now() - start;
 
     assert(elapsed >= 40, `expected to wait for the bucket, but only waited ${elapsed}ms`);
+});
+
+Deno.test("webhook and interaction tokens never appear in logs or error messages", async () => {
+    const token = "aW50ZXJhY3Rpb246c2VjcmV0LXRva2VuLXRoYXQtc2hvdWxkLW5vdC1sZWFrLWludG8tbG9ncw";
+    assertEquals(
+        redactPath(`/webhooks/123456789012345678/${token}/messages/@original`),
+        "/webhooks/123456789012345678/:token/messages/@original",
+    );
+    assertEquals(
+        redactPath(`/interactions/123456789012345678/${token}/callback`),
+        "/interactions/123456789012345678/:token/callback",
+    );
+    assertEquals(redactPath("/channels/123456789012345678/messages"), "/channels/123456789012345678/messages");
+
+    const logs: string[] = [];
+    const rest = new RestClient({
+        fetch: () => Promise.resolve(Response.json({ message: "Unknown Webhook", code: 10015 }, { status: 404 })),
+        logger: new Logger({ level: LogLevel.TRACE, handler: (_l, _s, args) => logs.push(args.map(String).join(" ")) }),
+    });
+    const error = await assertRejects(
+        () => rest.patch(`/webhooks/123456789012345678/${token}/messages/@original`, { body: {}, auth: false }),
+        DiscordAPIError,
+    );
+    assert(!error.message.includes(token), error.message);
+    assert(!error.path.includes(token));
+    assert(logs.length > 0 && logs.every((line) => !line.includes(token)), logs.join("\n"));
 });

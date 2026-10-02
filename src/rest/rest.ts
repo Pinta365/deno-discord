@@ -141,6 +141,8 @@ export class RestClient {
      */
     async request<T>(method: Method, path: string, options: RequestOptions = {}): Promise<T> {
         const routeKey = RestClient.routeKey(method, path);
+        // Webhook and interaction tokens are credentials; never put them in logs or error messages.
+        const safePath = redactPath(path);
         const major = RestClient.majorParameter(path);
         const bucketKey = () => `${this.#hashes.get(routeKey) ?? routeKey}:${major}`;
 
@@ -165,7 +167,7 @@ export class RestClient {
                 } catch (error) {
                     if (options.signal?.aborted || attempt >= this.#retries) throw error;
                     attempt++;
-                    this.#logger.warn(`${method} ${path} failed (${error}), retry ${attempt}/${this.#retries}`);
+                    this.#logger.warn(`${method} ${safePath} failed (${error}), retry ${attempt}/${this.#retries}`);
                     await sleep(500 * 2 ** attempt);
                     continue;
                 }
@@ -179,9 +181,9 @@ export class RestClient {
                         this.#globalResetAt = Date.now() + retryAfter;
                     }
                     if (++rateLimitHits > MAX_RATE_LIMIT_RETRIES) {
-                        throw new DiscordAPIError(429, method, path, body);
+                        throw new DiscordAPIError(429, method, safePath, body);
                     }
-                    this.#logger.warn(`Rate limited on ${method} ${path}, retrying in ${retryAfter}ms`);
+                    this.#logger.warn(`Rate limited on ${method} ${safePath}, retrying in ${retryAfter}ms`);
                     await sleep(retryAfter);
                     continue;
                 }
@@ -189,13 +191,13 @@ export class RestClient {
                 if (response.status >= 500 && attempt < this.#retries) {
                     await response.body?.cancel();
                     attempt++;
-                    this.#logger.warn(`${method} ${path} returned ${response.status}, retry ${attempt}`);
+                    this.#logger.warn(`${method} ${safePath} returned ${response.status}, retry ${attempt}`);
                     await sleep(500 * 2 ** attempt);
                     continue;
                 }
 
                 const body = await RestClient.#parse(response);
-                if (!response.ok) throw new DiscordAPIError(response.status, method, path, body);
+                if (!response.ok) throw new DiscordAPIError(response.status, method, safePath, body);
                 return body as T;
             }
         } finally {
@@ -233,7 +235,7 @@ export class RestClient {
 
         const timeout = AbortSignal.timeout(this.#timeout);
         const signal = options.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
-        this.#logger.debug(method, url.pathname);
+        this.#logger.debug(method, redactPath(url.pathname));
         return await this.#fetch(url, { method, headers, body, signal });
     }
 
@@ -325,4 +327,12 @@ export class RestClient {
         if (interaction) return `interaction:${interaction[1]}`;
         return /^\/(?:channels|guilds|webhooks)\/(\d{16,21})/.exec(path)?.[1] ?? "global";
     }
+}
+
+/**
+ * Replaces webhook and interaction tokens in an API path with `:token`, for logs and error messages.
+ * @example redactPath("/webhooks/123/abc.def/messages/@original") // "/webhooks/123/:token/messages/@original"
+ */
+export function redactPath(path: string): string {
+    return path.replace(/(\/(?:webhooks|interactions)\/\d{16,21})\/[^/?]+/g, "$1/:token");
 }

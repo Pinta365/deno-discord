@@ -8,7 +8,7 @@ export class DiscordAPIError extends Error {
     readonly errors: unknown;
     /** HTTP method of the failed request. */
     readonly method: string;
-    /** Path of the failed request, relative to the API base. */
+    /** Path of the failed request, relative to the API base, with webhook/interaction tokens redacted. */
     readonly path: string;
     /** The raw response body (parsed JSON or text). */
     readonly body: unknown;

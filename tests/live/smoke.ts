@@ -12,12 +12,25 @@ import { assert, assertEquals, assertExists, assertRejects } from "@std/assert";
 import {
     API,
     Client,
+    ComponentType,
     DiscordAPIError,
     GatewayIntentBits,
     LogLevel,
     PermissionFlagsBits,
     RestClient,
 } from "../../mod.ts";
+import {
+    button,
+    componentsV2,
+    container,
+    file,
+    gallery,
+    row,
+    section,
+    separator,
+    text,
+    thumbnail,
+} from "../../src/components/components.ts";
 
 const token = Deno.env.get("DISCORD_TOKEN");
 const guildId = Deno.env.get("DISCORD_GUILD_ID");
@@ -87,6 +100,38 @@ Deno.test({
             await api.channels.addReaction(channelId!, sent.id, "✅");
             const users = await api.channels.getReactions(channelId!, sent.id, "✅");
             assertEquals(users.length, 1);
+        } finally {
+            await api.channels.deleteMessage(channelId!, sent.id);
+        }
+    },
+});
+
+Deno.test({
+    name: "rest: Discord accepts a Components v2 message built with the builders",
+    ignore: !token || !channelId,
+    async fn() {
+        const avatar = "https://cdn.discordapp.com/embed/avatars/0.png";
+        const sent = await api.channels.createMessage(channelId!, {
+            ...componentsV2([
+                container({ accent: 0x5865f2 }, [
+                    "## @pinta365/discord live smoke test",
+                    section(["Components v2 builders", "-# will be deleted"], thumbnail(avatar)),
+                    separator({ spacing: "large" }),
+                    gallery(avatar, { url: avatar, description: "second" }),
+                    file("attachment://report.txt"),
+                    row(button.primary("smoke_ok", "OK", { emoji: "✅" }), button.link("https://jsr.io", "JSR")),
+                ]),
+                text("outside the container"),
+            ]),
+            files: [{ name: "report.txt", data: "components v2 file component" }],
+        });
+        try {
+            assertEquals(sent.components?.length, 2);
+            // A file used by a file() component is shown in the component, not in message.attachments.
+            const box = sent.components![0] as { components: { type: number; file?: { url: string } }[] };
+            const fileComponent = box.components.find((c) => c.type === ComponentType.File);
+            assertExists(fileComponent?.file?.url);
+            assert(!fileComponent.file.url.startsWith("attachment://"), "Discord resolved the uploaded file");
         } finally {
             await api.channels.deleteMessage(channelId!, sent.id);
         }

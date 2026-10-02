@@ -77,6 +77,47 @@ Helpers for reading the interaction: `commandName`, `subcommand`, `subcommandGro
 `customId`, `modalValues`, `user`, `guildId`, `channelId`, and type checks such as `isChatInputCommand()`, `isButton()`
 and `isModalSubmit()`. Payloads accept files: `reply({ content, files: [{ name, data }] })`.
 
+## Components and modals
+
+Builder functions return plain discord-api-types objects, so they mix freely with hand-written JSON. Import them from
+`@pinta365/discord/components`, or use the `components` namespace from the main entry point.
+
+```ts
+import { button, componentsV2, container, row, section, separator, thumbnail } from "@pinta365/discord/components";
+
+// Components v2: layout, rich text, media. (content/embeds can't be combined with v2 messages.)
+await interaction.reply(componentsV2([
+    container({ accent: 0x57f287 }, [
+        section(["## Status", "All systems operational"], thumbnail(avatarUrl)),
+        separator(),
+        row(button.secondary("refresh", "Refresh", { emoji: "🔄" }), button.link("https://example.com", "Docs")),
+    ]),
+]));
+
+// Classic components work in normal messages too.
+await interaction.reply({
+    content: "Pick one",
+    components: [row(button.primary("yes", "Yes"), button.danger("no", "No"))],
+});
+```
+
+Also available: `text`, `gallery`, `file` (`attachment://…`), `stringSelect`, `userSelect`, `roleSelect`,
+`mentionableSelect` and `channelSelect`.
+
+Modals use labels wrapping inputs. Submitted values come back typed by input in `interaction.modalValues`:
+
+```ts
+await interaction.showModal(modal("feedback", "Feedback", [
+    label("Rating", radioGroup("rating", ["Great", "Okay", "Bad"], { required: true })),
+    label("Comments", textInput("text", { style: "paragraph" })),
+]));
+
+// on submit:
+const { rating, text } = interaction.modalValues; // string | null, string
+```
+
+Modal inputs: `textInput`, `radioGroup`, `checkboxGroup`, `checkbox`, `fileUpload`, and select menus.
+
 ## Cache (optional)
 
 Off by default. When enabled, guilds, channels (including threads), roles and the bot's own member in each guild are

@@ -23,6 +23,9 @@ export type ReplyOptions = string | (APIInteractionResponseCallbackData & { file
 /** Sends the initial interaction response. Gateway bots POST it; HTTP bots return it as the HTTP response. */
 export type InitialResponder = (response: APIInteractionResponse, files?: RawFile[]) => Promise<void>;
 
+/** A submitted modal input value. See {@link Interaction.modalValues}. */
+export type ModalValue = string | string[] | boolean | null;
+
 /** A resolved command option value. */
 export type OptionValue = string | number | boolean;
 
@@ -186,19 +189,33 @@ export class Interaction {
         return opt && "value" in opt ? { name: opt.name, value: opt.value } : undefined;
     }
 
-    /** For modal submits: the values of all submitted text inputs, keyed by custom ID. */
-    get modalValues(): Record<string, string> {
-        const values: Record<string, string> = {};
+    /**
+     * For modal submits: every submitted input's value, keyed by custom ID.
+     * - text input, radio group: `string` (radio is `null` when nothing is picked)
+     * - select menus, checkbox group, file upload: `string[]` (file upload values are attachment IDs in `raw.data.resolved`)
+     * - checkbox: `boolean`
+     */
+    get modalValues(): Record<string, ModalValue> {
+        const values: Record<string, ModalValue> = {};
         if (!this.isModalSubmit()) return values;
         const walk = (components: unknown[]): void => {
             for (const c of components as Record<string, unknown>[]) {
-                if (typeof c.custom_id === "string" && typeof c.value === "string") values[c.custom_id] = c.value;
+                if (typeof c.custom_id === "string") {
+                    if ("value" in c) values[c.custom_id] = c.value as ModalValue;
+                    else if (Array.isArray(c.values)) values[c.custom_id] = c.values as string[];
+                }
                 if (Array.isArray(c.components)) walk(c.components);
                 if (c.component && typeof c.component === "object") walk([c.component]);
             }
         };
         walk(this.raw.data.components);
         return values;
+    }
+
+    /** For modal submits: a text input's (or radio group's) value as a string, if present. */
+    getModalText(customId: string): string | undefined {
+        const value = this.modalValues[customId];
+        return typeof value === "string" ? value : undefined;
     }
 
     // --- responses -----------------------------------------------------------------------------

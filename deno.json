@@ -1,9 +1,10 @@
 {
     "name": "@pinta365/discord",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "exports": {
         ".": "./mod.ts",
-        "./types": "./src/types.ts"
+        "./types": "./src/types.ts",
+        "./components": "./src/components/components.ts"
     },
     "imports": {
         "discord-api-types/v10": "npm:discord-api-types@^0.38.56/v10",

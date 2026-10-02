@@ -1,15 +1,19 @@
-// A gateway bot with slash commands, a button and a modal.
+// A gateway bot with slash commands, buttons, a modal and a Components v2 message.
 //   deno run --env-file --allow-env --allow-net examples/gateway_bot.ts
+import { ActivityType, Client, GatewayIntentBits, LogLevel, PresenceUpdateStatus } from "../mod.ts";
 import {
-    ActivityType,
-    ButtonStyle,
-    Client,
-    ComponentType,
-    GatewayIntentBits,
-    LogLevel,
-    PresenceUpdateStatus,
-    TextInputStyle,
-} from "../mod.ts";
+    button,
+    componentsV2,
+    container,
+    label,
+    modal,
+    radioGroup,
+    row,
+    section,
+    separator,
+    textInput,
+    thumbnail,
+} from "../src/components/components.ts";
 
 const client = new Client({
     token: Deno.env.get("DISCORD_TOKEN")!,
@@ -27,46 +31,52 @@ client.on("READY", (data) => {
     console.log(`Logged in as ${data.user.username} in ${data.guilds.length} guild(s)`);
 });
 
+function statusCard() {
+    const avatar = client.user?.avatar
+        ? `https://cdn.discordapp.com/avatars/${client.user.id}/${client.user.avatar}.png`
+        : "https://cdn.discordapp.com/embed/avatars/0.png";
+    return componentsV2([
+        container({ accent: 0x57f287 }, [
+            section([`## ${client.user?.username ?? "Bot"} status`, "All systems operational"], thumbnail(avatar)),
+            separator(),
+            `**Gateway latency:** ${client.latency}ms\n**Shards:** ${client.shards.size}`,
+            row(
+                button.secondary("status_refresh", "Refresh", { emoji: "🔄" }),
+                button.link("https://jsr.io/@pinta365/discord", "Library"),
+            ),
+        ]),
+    ]);
+}
+
 client.on("INTERACTION_CREATE", async (i) => {
     if (i.isChatInputCommand()) {
         switch (i.commandName) {
             case "ping":
                 await i.reply({
                     content: `Pong! Gateway latency: ${client.latency}ms`,
-                    components: [{
-                        type: ComponentType.ActionRow,
-                        components: [{
-                            type: ComponentType.Button,
-                            style: ButtonStyle.Primary,
-                            custom_id: "again",
-                            label: "Again",
-                        }],
-                    }],
+                    components: [row(button.primary("again", "Again"))],
                 });
                 break;
             case "echo":
                 await i.reply({ content: i.getOption<string>("text"), ephemeral: i.getOption<boolean>("private") });
                 break;
             case "feedback":
-                await i.showModal({
-                    custom_id: "feedback_form",
-                    title: "Feedback",
-                    components: [{
-                        type: ComponentType.Label,
-                        label: "What do you think?",
-                        component: {
-                            type: ComponentType.TextInput,
-                            custom_id: "text",
-                            style: TextInputStyle.Paragraph,
-                        },
-                    }],
-                });
+                await i.showModal(modal("feedback_form", "Feedback", [
+                    label("How was it?", radioGroup("rating", ["Great", "Okay", "Bad"], { required: true })),
+                    label("What do you think?", textInput("text", { style: "paragraph" })),
+                ]));
+                break;
+            case "status":
+                await i.reply(statusCard());
                 break;
         }
     } else if (i.isButton() && i.customId === "again") {
         await i.update({ content: `Pong again! Latency: ${client.latency}ms` });
+    } else if (i.isButton() && i.customId === "status_refresh") {
+        await i.update(statusCard());
     } else if (i.isModalSubmit() && i.customId === "feedback_form") {
-        await i.reply({ content: `Thanks! You wrote: ${i.modalValues.text}`, ephemeral: true });
+        const { rating, text } = i.modalValues;
+        await i.reply({ content: `Thanks! Rating: ${rating}. You wrote: ${text || "(nothing)"}`, ephemeral: true });
     }
 });
 

@@ -3,6 +3,7 @@ import {
     type APIInteraction,
     ApplicationCommandOptionType,
     ApplicationCommandType,
+    ComponentType,
     InteractionResponseType,
     InteractionType,
     MessageFlags,
@@ -177,6 +178,64 @@ Deno.test("modalValues collects values including nested label components", () =>
     assert(interaction.isModalSubmit());
     assertEquals(interaction.customId, "modal-1");
     assertEquals(interaction.modalValues, { name: "Ada", age: "36" });
+});
+
+Deno.test("modalValues types inputs nested in Label components", () => {
+    const interaction = new Interaction(
+        commandInteraction({
+            type: InteractionType.ModalSubmit,
+            data: {
+                custom_id: "modal-types",
+                components: [
+                    {
+                        type: ComponentType.Label,
+                        component: { type: ComponentType.TextInput, custom_id: "text", value: "hello" },
+                    },
+                    {
+                        type: ComponentType.Label,
+                        component: { type: ComponentType.RadioGroup, custom_id: "radio", value: "a" },
+                    },
+                    {
+                        type: ComponentType.Label,
+                        component: { type: ComponentType.RadioGroup, custom_id: "radioEmpty", value: null },
+                    },
+                    {
+                        type: ComponentType.ActionRow,
+                        components: [
+                            { type: ComponentType.StringSelect, custom_id: "select", values: ["x", "y"] },
+                        ],
+                    },
+                    {
+                        type: ComponentType.Label,
+                        component: { type: ComponentType.CheckboxGroup, custom_id: "checks", values: ["a", "b"] },
+                    },
+                    {
+                        type: ComponentType.Label,
+                        component: { type: ComponentType.FileUpload, custom_id: "upload", values: ["file-1"] },
+                    },
+                    {
+                        type: ComponentType.Label,
+                        component: { type: ComponentType.Checkbox, custom_id: "check", value: true },
+                    },
+                ],
+            },
+        }),
+        rest,
+    );
+
+    assertEquals(interaction.modalValues, {
+        text: "hello",
+        radio: "a",
+        radioEmpty: null,
+        select: ["x", "y"],
+        checks: ["a", "b"],
+        upload: ["file-1"],
+        check: true,
+    });
+    assertEquals(interaction.getModalText("text"), "hello");
+    assertEquals(interaction.getModalText("radio"), "a");
+    assertEquals(interaction.getModalText("radioEmpty"), undefined);
+    assertEquals(interaction.getModalText("select"), undefined);
 });
 
 Deno.test("component interactions expose customId and type helpers", () => {

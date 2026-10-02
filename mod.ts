@@ -28,12 +28,15 @@ export { WebhooksAPI } from "./src/api/webhooks.ts";
 export {
     type InitialResponder,
     Interaction,
+    type ModalValue,
     type OptionValue,
     type ReplyOptions,
 } from "./src/interactions/interaction.ts";
 export { createInteractionHandler, type InteractionHandlerOptions, verify } from "./src/interactions/http.ts";
 export { Cache, type CachedGuild, type CachedRole, type CacheOptions } from "./src/cache/cache.ts";
 export { applyOverwrites, computeBasePermissions } from "./src/cache/permissions.ts";
+/** Component and modal builders; also available as `@pinta365/discord/components`. */
+export * as components from "./src/components/components.ts";
 export { Emitter, type EventMap, type Listener } from "./src/events.ts";
 export { consoleLogHandler, Logger, type LoggerOptions, type LogHandler, LogLevel } from "./src/logger.ts";
 export { VERSION } from "./src/version.ts";

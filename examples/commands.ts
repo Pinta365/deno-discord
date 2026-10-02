@@ -12,4 +12,5 @@ export const commands: RESTPutAPIApplicationGuildCommandsJSONBody = [
         ],
     },
     { name: "feedback", description: "Opens a feedback form" },
+    { name: "status", description: "Shows a Components v2 status card" },
 ];

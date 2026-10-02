@@ -35,6 +35,7 @@ export {
 export { createInteractionHandler, type InteractionHandlerOptions, verify } from "./src/interactions/http.ts";
 export { Cache, type CachedGuild, type CachedRole, type CacheOptions } from "./src/cache/cache.ts";
 export { applyOverwrites, computeBasePermissions } from "./src/cache/permissions.ts";
+export * from "./src/commands/mod.ts";
 /** Component and modal builders; also available as `@pinta365/discord/components`. */
 export * as components from "./src/components/components.ts";
 export { Emitter, type EventMap, type Listener } from "./src/events.ts";

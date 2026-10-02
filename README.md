@@ -168,11 +168,54 @@ const message = await rest.post<APIMessage>(Routes.channelMessages(channelId), {
 
 Non-2xx responses throw `DiscordAPIError`, which has `status`, `code` and `errors`.
 
-## Registering commands
+## Commands
 
-See [`examples/register_commands.ts`](examples/register_commands.ts). It uses
-`api.applications.bulkOverwriteGuildCommands` for instant guild commands, or `bulkOverwriteGlobalCommands` for global
-ones.
+The command framework defines slash commands, context menus and component/modal routes with typed options. It registers
+them with Discord and dispatches interactions. It works the same for gateway and HTTP bots.
+
+```ts
+import { CommandRouter, option, slash, subcommand, userCommand } from "@pinta365/discord";
+
+const echo = slash({
+    name: "echo",
+    description: "Echoes text",
+    options: {
+        text: option.string("What to echo", { required: true }),
+        private: option.boolean("Only you can see it"),
+    },
+}, (i, { text, private: hidden }) => i.reply({ content: text, ephemeral: hidden }));
+//          ^ string   ^ boolean | undefined: inferred from the option definitions
+
+const fruit = slash({
+    name: "fruit",
+    description: "Pick a fruit",
+    options: {
+        name: option.string("Start typing", {
+            required: true,
+            autocomplete: (_i, value) => fruits.filter((f) => f.startsWith(value)),
+        }),
+    },
+}, (i, { name }) => i.reply(name));
+
+const info = userCommand({ name: "User info" }, (i, { user, member }) => i.reply(user.username));
+
+const router = new CommandRouter([echo, fruit, info])
+    .component("vote", (i, [choice]) => i.reply(`Voted ${choice}`)) // custom_id "vote:<choice>"
+    .modal("feedback", (i) => i.reply(`Thanks: ${i.modalValues.text}`));
+
+client.on("READY", (d) => router.register(client.api, d.application.id, { guildId })); // omit guildId for global
+client.on("INTERACTION_CREATE", (i) => router.handle(i));
+// HTTP bots: createInteractionHandler({ publicKey, onInteraction: (i) => router.handle(i) })
+```
+
+- **Options:** `option.string`, `integer`, `number`, `boolean`, `user` (`{ user, member? }`), `channel`, `role`,
+  `mentionable` and `attachment`. Resolved objects are passed to the handler, not IDs.
+- **Subcommands:** `slash({ name, description, subcommands: { show: subcommand({...}, handler) }, groups: {...} })`.
+- **Context menus:** `userCommand` and `messageCommand`.
+- **Errors:** a throwing handler is logged, and the user gets an ephemeral "Something went wrong." Customize with
+  `new CommandRouter(commands, { onError, errorMessage })`.
+
+See [`examples/commands.ts`](examples/commands.ts) for a complete set.
 
 ## Logging
 
@@ -184,7 +227,6 @@ new Client({ token, intents, logger: { level: LogLevel.DEBUG, handler: (level, s
 ## Examples
 
 ```sh
-deno run --env-file --allow-env --allow-net examples/register_commands.ts
 deno run --env-file --allow-env --allow-net examples/gateway_bot.ts
 deno run --env-file --allow-env --allow-net examples/http_bot.ts
 ```

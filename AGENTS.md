@@ -16,6 +16,8 @@ Guidance for AI coding agents (and humans) working in this repo.
   member, and optional bounded messages. No general member cache by design.
 - **Components** (src/components/): builder functions returning plain discord-api-types component objects
   (`@pinta365/discord/components`). No classes, no `.build()`.
+- **Commands** (src/commands/): `slash`/`subcommand`/`userCommand`/`messageCommand` + `option.*` builders with inferred
+  handler types, and `CommandRouter` for registering and dispatching (gateway and HTTP).
 - **Interactions**: `Interaction` (src/interactions/interaction.ts) wraps both gateway and HTTP interactions.
 
 ## Rules

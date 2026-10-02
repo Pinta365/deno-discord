@@ -1,8 +1,0 @@
-{
-    "tasks": {
-        "dev": "deno run --watch main.ts"
-    },
-    "imports": {
-        "@cross/env": "jsr:@cross/env@^1.0.0"
-    }
-}

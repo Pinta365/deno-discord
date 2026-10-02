@@ -1,13 +1,37 @@
 {
     "name": "@pinta365/discordbot",
-    "version": "0.0.1",
-    "exports": "./mod.ts",
-
+    "version": "0.1.0",
+    "exports": {
+        ".": "./mod.ts",
+        "./types": "./src/types.ts"
+    },
+    "imports": {
+        "discord-api-types/v10": "npm:discord-api-types@^0.38.56/v10",
+        "@std/assert": "jsr:@std/assert@^1.0.19",
+        "@std/testing": "jsr:@std/testing@^1.0.21"
+    },
     "tasks": {
-        "publish-dry": "deno publish --dry-run"
+        "check": "deno check mod.ts tests/ examples/",
+        "test": "deno test --allow-env --allow-net",
+        "test:live": "deno test --env-file --allow-env --allow-net tests/live/smoke.ts",
+        "lint": "deno lint",
+        "ci": "deno fmt --check && deno task lint && deno task check && deno task test",
+        "publish-dry": "deno publish --dry-run --allow-dirty"
     },
     "fmt": {
         "lineWidth": 120,
         "indentWidth": 4
-    }
+    },
+    "publish": {
+        "include": [
+            "mod.ts",
+            "src/",
+            "README.md",
+            "LICENSE",
+            "deno.json"
+        ]
+    },
+    "exclude": [
+        "dev/"
+    ]
 }
